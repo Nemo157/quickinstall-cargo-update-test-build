@@ -1,0 +1,35 @@
+on:
+  push:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+    - run: rustup toolchain install stable --no-self-update --profile minimal
+
+    - shell: bash
+      run: |
+        choco install llvm
+        rustup target add x86_64-pc-windows-msvc
+
+        CARGO_ROOT=/tmp/tmp.ukgarzRjCr
+
+        mkdir -p "$CARGO_ROOT"
+
+        export CARGO_PROFILE_RELEASE_CODEGEN_UNITS=1
+        export CARGO_PROFILE_RELEASE_LTO=fat
+        export OPENSSL_STATIC=1
+        export CARGO_REGISTRIES_CRATES_IO_PROTOCOL=sparse
+
+        cargo install cargo-update --version 18.0.0 --target x86_64-pc-windows-msvc --root "$CARGO_ROOT" --locked --features vendored-libcurl,vendored-libgit2,vendored-openssl
+
+    - uses: actions/upload-artifact@v4
+      with:
+        name: built-windows-latest
+        path: |
+          C:/Users/RUNNER~1/AppData/Local/Temp/tmp.ukgarzRjCr/bin/cargo-install-update-config.exe
+          C:/Users/RUNNER~1/AppData/Local/Temp/tmp.ukgarzRjCr/bin/cargo-install-update.exe
+        if-no-files-found: error
+        compression-level: 6
+        overwrite: false
+        include-hidden-files: false
